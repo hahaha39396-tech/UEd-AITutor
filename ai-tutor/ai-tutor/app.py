@@ -7,6 +7,21 @@ import google.generativeai as genai
 import cv2
 import numpy as np
 import base64
+from flask import Flask
+from ai_tutor.JudgeMaster.app import app as judge_app  # import app con
+
+app = Flask(__name__)
+
+# Đăng ký judge_app làm Blueprint hoặc mount trực tiếp (dùng DispatcherMiddleware)
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+
+application = DispatcherMiddleware(app, {
+    '/judge': judge_app  # tất cả url /judge sẽ chuyển đến app con
+})
+
+if __name__ == "__main__":
+    from werkzeug.serving import run_simple
+    run_simple('0.0.0.0', 5000, application, use_reloader=True)
 
 
 # Cấu hình Gemini API 
