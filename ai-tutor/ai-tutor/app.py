@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask, request, jsonify, render_template
 from .grade import grade_submission
-from ai_feedback import ai_feedback
+from .ai_feedback import ai_feedback
 import os
 import google.generativeai as genai
 import cv2
