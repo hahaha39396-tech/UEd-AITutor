@@ -1,2 +1,4 @@
 Flask==3.0.3
 gunicorn
+pip install google-generativeai
+pip freeze > requirements.txt
