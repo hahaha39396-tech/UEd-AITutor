@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="UEd - AI Tutor - Hệ thống kiểm tra đánh giá chấm điểm tin học THPT">
+    <title>{% block title %}UEd - AI Tutor{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"> {% block head %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-container">
+
+        {% if current_user.is_authenticated %}
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar bg-gray-100 p-4" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo flex items-center">
+<div class="sidebar-logo-icon w-6 h-6 flex items-center justify-center">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+</div>
+                    <span class="sidebar-logo-text ml-2 text-xl font-semibold">UEd - AI Tutor</span>
+                </div>
+            </div>
+
+            <div class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu chính</div>
+
+                    <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-line nav-item-icon"></i>
+                        <span class="nav-item-text">Dashboard</span>
+                    </a>
+
+                    <a href="{{ url_for('assignments') }}" class="nav-item {% if request.endpoint == 'assignments' %}active{% endif %}">
+                        <i class="fa-solid fa-pen-to-square nav-item-icon"></i>
+                        <span class="nav-item-text">Bài tập</span>
+                    </a>
+
+                    <a href="{{ url_for('results') }}" class="nav-item {% if request.endpoint == 'results' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-pie nav-item-icon"></i>
+                        <span class="nav-item-text">Kết quả</span>
+                    </a>
+
+                    {% if current_user.role == 'student' %}
+                    <a href="{{ url_for('practice') }}" class="nav-item {% if request.endpoint == 'practice' %}active{% endif %}">
+                        <i class="fa-solid fa-dumbbell nav-item-icon"></i>
+                        <span class="nav-item-text">Luyện tập</span>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu chính</div>
+                    <a href="http://127.0.0.1:5001/chat_web" class="nav-item {% if request.endpoint == 'chat' %}active{% endif %}">
+                        <i class="fa-solid fa-robot nav-icon"></i>
+                        <span class="nav-item-text">AI Tutor</span>
+                    </a>
+                </div>
+
+                {% if current_user.is_instructor() %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Giảng viên</div>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-plus nav-item-icon"></i>
+                        <span class="nav-item-text">Tạo bài tập</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-users nav-item-icon"></i>
+                        <span class="nav-item-text">Quản lý lớp</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-chart-column nav-item-icon"></i>
+                        <span class="nav-item-text">Thống kê</span>
+                    </a>
+                </div>
+                {% endif %} {% if current_user.is_admin() %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Quản trị</div>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-user nav-item-icon"></i>
+                        <span class="nav-item-text">Người dùng</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-graduation-cap nav-item-icon"></i>
+                        <span class="nav-item-text">Khóa học</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-gear nav-item-icon"></i>
+                        <span class="nav-item-text">Cài đặt</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- User profile in sidebar -->
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar">
+                    <i class="fa-solid fa-user-circle text-3xl"></i>
+                </div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name">
+                        {{ current_user.display_name or current_user.full_name }}
+                    </div>
+                    <div class="sidebar-user-class">
+                        {{ current_user.role.title() }}
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar flex justify-between items-center px-4 py-2 shadow bg-white">
+                <div class="topbar-left flex items-center gap-3">
+                    <!-- Nút Sidebar -->
+                    <button class="btn btn-ghost hover:bg-gray-100 p-2 rounded" id="sidebar-toggle" title="Toggle Sidebar">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+
+                    <!-- Tiêu đề -->
+                    <h1 class="topbar-title font-semibold text-lg">
+                        {% block page_title %}UEd - AI Tutor{% endblock %}
+                    </h1>
+                </div>
+
+                <!-- Thay thế phần topbar-right -->
+                <div class="topbar-right flex items-center gap-3">
+
+
+                    <!-- Nút Thông báo -->
+                    <button class="btn btn-ghost hover:bg-gray-100 p-2 rounded" onclick="toggleNotifications()" title="Thông báo">
+                        <i class="fa-solid fa-bell text-lg"></i>
+                    </button>
+
+                    <!-- User Dropdown -->
+                    <div class="user-dropdown relative">
+    <button id="userMenuButton" 
+            class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+        <i class="fa-solid fa-user-circle text-lg"></i>
+        <span>{{ current_user.display_name or current_user.full_name }}</span>
+        <i class="fa-solid fa-chevron-down text-sm transition-transform"></i>
+    </button>
+
+    <div id="userMenu" class="hidden">
+        <div class="py-1">
+            <a href="{{ url_for('profile') }}" class="dropdown-item">
+                <i class="fa-solid fa-id-card mr-2"></i>
+                Hồ sơ
+            </a>
+            <a href="{{ url_for('settings') }}" class="dropdown-item">
+                <i class="fa-solid fa-gear mr-2"></i>
+                Cài đặt
+            </a>
+            <div class="border-t"></div>
+            <form action="{{ url_for('logout') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="dropdown-item w-full text-left">
+                    <i class="fa-solid fa-sign-out-alt mr-2"></i>
+                    Đăng xuất
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+                </div>
+            </header>
+
+            <!-- JS cho dropdown -->
+<script>
+    document.getElementById("userMenuButton").addEventListener("click", function () {
+        const menu = document.getElementById("userMenu");
+        menu.classList.toggle("hidden");
+    });
+</script>
+
+            <!-- Page Content -->
+            <main class="content p-4">
+                {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
+                <div class="alert alert-{{ 'error' if category == 'error' else category }}">
+                    {{ message }}
+                </div>
+                {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        {% else %}
+        <!-- Non-authenticated content -->
+        {% block unauthenticated_content %}{% endblock %} 
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

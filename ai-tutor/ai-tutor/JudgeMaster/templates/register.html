@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký - JudgeMaster{% endblock %}
+
+{% block unauthenticated_content %}
+<div class="auth-container">
+    <div class="auth-card">
+<div class="auth-header">
+    <div class="auth-logo">
+        <img src="/static/images/logo.png" alt="JudgeMaster Logo">
+    </div>
+    <h1 class="auth-title">Đăng ký</h1>
+    <p class="auth-subtitle">Tạo tài khoản UEd- AI Tutor mới</p>
+</div>
+
+        
+        <div class="auth-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'error' if category == 'error' else category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" class="auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="form-group">
+                    <label for="full_name" class="form-label">Họ và tên</label>
+                    <input type="text" id="full_name" name="full_name" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Mật khẩu</label>
+                    <input type="password" id="password" name="password" class="form-input" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">Xác nhận mật khẩu</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-input" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Đăng ký</button>
+            </form>
+        </div>
+        
+        <div class="auth-footer">
+            <p>Đã có tài khoản? <a href="{{ url_for('login') }}">Đăng nhập</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    function validatePassword() {
+        if (password.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity('Mật khẩu xác nhận không khớp');
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+    
+    password.addEventListener('input', validatePassword);
+    confirmPassword.addEventListener('input', validatePassword);
+});
+</script>
+{% endblock %}

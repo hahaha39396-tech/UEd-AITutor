@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor Chat</title>
+    
+    <!-- Thư viện Markdown và MathJax -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        
+        button {
+            margin-top: 10px;
+            padding: 8px 16px;
+        }
+        
+        #chat_output {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            white-space: pre-wrap;
+            background: #f9f9f9;
+            line-height: 1.5;
+        }
+        
+        #chat_output code {
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        #chat_output pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        #chat_output blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 10px;
+            margin-left: 0;
+            color: #666;
+        }
+        
+        .user {
+            color: blue;
+        }
+        
+        .ai {
+            color: green;
+        }
+
+        /* CSS cho giao diện mới */
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: #0078d4;
+            color: #fff;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .header-text h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .header-text p {
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #4caf50;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .chat-messages {
+            padding: 16px;
+            height: 400px;
+            overflow-y: auto;
+            background: #f7f7f7;
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .typing-content {
+            display: flex;
+            align-items: center;
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .avatar {
+            width: 30px;
+            height: 30px;
+            background: #0078d4;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .timestamp {
+            font-size: 12px;
+            color: #888;
+            margin-left: auto;
+        }
+        
+        .message-content {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            position: relative;
+        }
+        
+        .message-content code {
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .message-content pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        .message-content blockquote {
+            border-left: 4px solid #0078d4;
+            padding-left: 10px;
+            margin-left: 0;
+            color: #333;
+            background: #f9f9f9;
+        }
+        
+        .chat-input {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #fff;
+            border-top: 1px solid #ddd;
+        }
+        
+        .input-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 50px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: none;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #0078d4;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        button span {
+            margin-right: 5px;
+        }
+        
+        /* Hiệu ứng hover cho nút gửi */
+        button:hover {
+            background: #0056a1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="logo">AI</div>
+                <div class="header-text">
+                    <h1>AI Tutor Professional</h1>
+                    <p>Trợ lý học tập thông minh với công nghệ AI tiên tiến</p>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span class="status-text">Online</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chat_output">
+            <!-- Messages will be displayed here -->
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-content">
+                <div class="message-header">
+                    <div class="avatar">AI</div>
+                    <span>AI Tutor</span>
+                    <span class="timestamp">đang trả lời...</span>
+                </div>
+                <div class="typing-bubble">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea id="user_input" placeholder="Nhập câu hỏi của bạn..." rows="1"></textarea>
+                </div>
+            </div>
+            <button id="sendButton" onclick="sendQuestion()">
+                <span>Gửi</span>
+                <span>→</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Giữ nguyên script xử lý chat -->
+    <script>
+        async function sendQuestion() {
+            const question = document.getElementById("user_input").value.trim();
+            if (!question) return;
+
+            appendMessage("Bạn", question, "user");
+            document.getElementById("user_input").value = "";
+
+            showTypingIndicator();
+
+            try {
+                const response = await fetch("/tutor", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        user: question,
+                        context_code: ""
+                    })
+                });
+
+                hideTypingIndicator();
+                const data = await response.json();
+                appendMessage("AI", data.reply, "ai");
+            } catch (error) {
+                hideTypingIndicator();
+                appendMessage("AI", "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.", "ai");
+            }
+        }
+
+        function appendMessage(sender, message, cls) {
+            const chatOutput = document.getElementById("chat_output");
+            
+            let formattedMessage = message;
+            if (cls === "ai") {
+                formattedMessage = marked.parse(message);
+                formattedMessage = formattedMessage.replace(/\$\$(.*?)\$\$/g, '\\[$1\\]')
+                                                 .replace(/\$(.*?)\$/g, '\\($1\\)');
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${cls}`;
+            
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'message-wrapper';
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'message-header';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = cls === 'user' ? 'U' : 'AI';
+            
+            const name = document.createElement('span');
+            name.textContent = sender;
+            
+            const timestamp = document.createElement('span');
+            timestamp.className = 'timestamp';
+            timestamp.textContent = new Date().toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            headerDiv.appendChild(avatar);
+            headerDiv.appendChild(name);
+            headerDiv.appendChild(timestamp);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = formattedMessage;
+            
+            wrapperDiv.appendChild(headerDiv);
+            wrapperDiv.appendChild(contentDiv);
+            messageDiv.appendChild(wrapperDiv);
+            chatOutput.appendChild(messageDiv);
+            
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+            
+            if (cls === "ai") {
+                MathJax.typesetPromise([contentDiv]);
+            }
+        }
+
+        function showTypingIndicator() {
+            document.getElementById("typingIndicator").style.display = 'block';
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById("typingIndicator").style.display = 'none';
+        }
+
+        // Auto-resize textarea
+        document.getElementById("user_input").addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Enter to send
+        document.getElementById("user_input").addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendQuestion();
+            }
+        });
+
+        // Welcome message
+        setTimeout(() => {
+            appendMessage("AI", "Chào mừng bạn đến với AI Tutor Professional! Tôi là trợ lý học tập thông minh được trang bị công nghệ AI tiên tiến. Hãy đặt câu hỏi và tôi sẽ hỗ trợ bạn một cách chuyên nghiệp và chi tiết nhất.", "ai");
+        }, 800);
+    </script>
+</body>
+</html>

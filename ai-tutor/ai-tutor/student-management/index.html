@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý Điểm THPT</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <div class="header-content">
+                <button id="sidebarToggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <h1>Hệ thống quản lý điểm THPT</h1>
+                <div class="user-info">
+                    <span>Xin chào, <strong>[Username]</strong></span>
+                    <button class="btn btn-danger">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar">
+            <ul>
+                <li><a href="#" class="active">Dashboard</a></li>
+                <!-- Other navigation items -->
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <div class="content-panel">
+                <!-- Your content here -->
+            </div>
+        </main>
+    </div>
+    
+    <!-- Hidden template for login form -->
+    <template id="loginTemplate">
+        <form id="mainLoginForm" class="login-form">
+            <div class="form-group">
+                <label for="loginUsername">Tên đăng nhập:</label>
+                <input type="text" id="loginUsername" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Mật khẩu:</label>
+                <input type="password" id="loginPassword" name="password" required>
+            </div>
+            <button type="submit">Đăng nhập</button>
+        </form>
+    </template>
+
+    <script src="js/data-manager.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

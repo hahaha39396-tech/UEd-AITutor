@@ -1,0 +1,19 @@
+[project]
+name = "judgemaster"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "bcrypt>=5.0.0",
+    "datetime>=5.5",
+    "flask>=3.1.2",
+    "flask-login>=0.6.3",
+    "flask-sqlalchemy>=3.1.1",
+    "flask-wtf>=1.2.2",
+    "openai>=1.109.1",
+    "pathlib>=1.0.1",
+    "psycopg2-binary>=2.9.10",
+    "python-dotenv>=1.1.1",
+    "uuid>=1.30",
+    "werkzeug>=3.1.3",
+]

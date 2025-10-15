@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Cài đặt{% endblock %}
+
+{% block content %}
+<div class="settings-container p-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-2xl font-bold mb-6">Cài đặt tài khoản</h1>
+
+        <div class="settings-grid grid gap-6">
+            <!-- Preferences Section -->
+            <div class="settings-section">
+                <h2 class="text-lg font-semibold mb-4">Tùy chọn</h2>
+                <form id="preferencesForm" class="space-y-4">
+                    <div class="form-group">
+                        <label for="language">Ngôn ngữ lập trình mặc định</label>
+                        <select id="language" name="preferred_language" class="form-select">
+                            <option value="python" {% if user.preferred_language == 'python' %}selected{% endif %}>Python</option>
+                            <option value="java" {% if user.preferred_language == 'java' %}selected{% endif %}>Java</option>
+                            <option value="cpp" {% if user.preferred_language == 'cpp' %}selected{% endif %}>C++</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="timezone">Múi giờ</label>
+                        <select id="timezone" name="timezone" class="form-select">
+                            <option value="Asia/Ho_Chi_Minh" {% if user.timezone == 'Asia/Ho_Chi_Minh' %}selected{% endif %}>
+                                Việt Nam (GMT+7)
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="locale">Ngôn ngữ hiển thị</label>
+                        <select id="locale" name="locale" class="form-select">
+                            <option value="vi" {% if user.locale == 'vi' %}selected{% endif %}>Tiếng Việt</option>
+                            <option value="en" {% if user.locale == 'en' %}selected{% endif %}>English</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </form>
+            </div>
+
+            <!-- Account Section -->
+            <div class="settings-section">
+                <h2 class="text-lg font-semibold mb-4">Bảo mật</h2>
+                <form id="securityForm" class="space-y-4">
+                    <div class="form-group">
+                        <label for="current_password">Mật khẩu hiện tại</label>
+                        <input type="password" id="current_password" name="current_password" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new_password">Mật khẩu mới</label>
+                        <input type="password" id="new_password" name="new_password" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Xác nhận mật khẩu mới</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-input" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('preferencesForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('/api/settings/preferences', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+        
+        if (response.ok) {
+            alert('Cài đặt đã được lưu');
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra');
+    }
+});
+
+document.getElementById('securityForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('/api/settings/security', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+        
+        if (response.ok) {
+            alert('Mật khẩu đã được thay đổi');
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra');
+    }
+});
+</script>
+{% endblock %}

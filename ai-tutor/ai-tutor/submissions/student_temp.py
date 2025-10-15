@@ -1,0 +1,1 @@
+def factorial(n):\n    result=1\n    for i in range(1,n+1):\n        result*=i\n    print(result)\n\nfactorial(int(input()))

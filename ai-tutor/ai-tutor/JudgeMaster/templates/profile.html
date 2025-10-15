@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Hồ sơ - {{ user.display_name }}{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Profile Header Card -->
+    <div class="card profile-header-card">
+        <div class="card-body">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-user-circle"></i>
+                </div>
+                <div class="profile-info">
+                    <h1>{{ user.full_name }}</h1>
+                    <span class="badge badge-primary">{{ user.role.title() }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Content Grid -->
+    <div class="profile-grid">
+        <!-- Personal Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fa-solid fa-user text-primary-600"></i>
+                    Thông tin cá nhân
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="info-list">
+                    <div class="info-item">
+                        <label>Họ và tên</label>
+                        <p>{{ user.full_name }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Email</label>
+                        <p>{{ user.email }}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Ngày tham gia</label>
+                        <p>{{ user.created_at.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fa-solid fa-chart-bar text-primary-600"></i>
+                    Thống kê hoạt động
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ user.submissions|length }}</div>
+                        <div class="stat-label">Bài đã nộp</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ user.solved_problems|length }}</div>
+                        <div class="stat-label">Bài đã giải</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Card -->
+    <div class="card actions-card">
+        <div class="card-body">
+            <button onclick="showEditProfileModal()" class="btn btn-primary">
+                <i class="fa-solid fa-pen-to-square"></i>
+                Chỉnh sửa hồ sơ
+            </button>
+            <button onclick="showChangePasswordModal()" class="btn btn-secondary">
+                <i class="fa-solid fa-key"></i>
+                Đổi mật khẩu
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

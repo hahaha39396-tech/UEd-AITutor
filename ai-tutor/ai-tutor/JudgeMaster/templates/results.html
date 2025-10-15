@@ -1,0 +1,101 @@
+{% extends "base.html" %} {% block title %}Kết quả - UEd AiTutor{% endblock %} {% block page_title %}Kết quả{% endblock %} {% block content %}
+<div class="results-container">
+    <!-- Header -->
+    <div class="card mb-6">
+        <div class="card-body">
+            <h2 class="text-xl font-bold mb-2">Kết quả bài tập</h2>
+            <p class="text-sm text-gray-600">
+                {% if current_user.role == 'student' %} Lịch sử nộp bài và điểm số của bạn {% else %} Kết quả từ các bài tập bạn đã tạo {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Results Table -->
+    {% if submissions %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            {% if current_user.is_instructor() %}
+                            <th>Học sinh</th>
+                            {% endif %}
+                            <th>Bài tập</th>
+                            <th>Khóa học</th>
+                            <th>Điểm số</th>
+                            <th>Trạng thái</th>
+                            <th>Thời gian nộp</th>
+                            <th>Thời gian thực thi</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in submissions %}
+                        <tr>
+                            {% if current_user.is_instructor() %}
+                            <td>{{ submission.user.display_name or submission.user.full_name }}</td>
+                            {% endif %}
+                            <td>
+                                <div class="font-medium">{{ submission.assignment.title }}</div>
+                                <div class="text-sm text-gray-600">Lần thử {{ submission.attempt_number }}</div>
+                            </td>
+                            <td>{{ submission.assignment.course.title }}</td>
+                            <td>
+                                {% if submission.score is not none %}
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold">{{ "%.1f"|format(submission.score) }}</span>
+                                    <span class="text-gray-500">/{{ submission.max_score or submission.assignment.points_possible }}</span>
+                                    <div class="w-16 h-2 bg-gray-200 rounded">
+                                        {% set percentage = (submission.score / (submission.max_score or submission.assignment.points_possible)) * 100 %}
+                                        <div class="h-full rounded bg-{{ 'success' if percentage >= 80 else 'warning' if percentage >= 60 else 'error' }}-500" style="width: {{ percentage }}%"></div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <span class="text-gray-500">-</span> {% endif %}
+                            </td>
+                            <td>
+                                {% if submission.status == 'completed' %}
+                                <span class="badge badge-success">Hoàn thành</span> {% elif submission.status == 'grading' %}
+                                <span class="badge badge-warning">Đang chấm</span> {% elif submission.status == 'error' %}
+                                <span class="badge badge-error">Lỗi</span> {% else %}
+                                <span class="badge badge-secondary">{{ submission.status|title }}</span> {% endif %} {% if submission.is_late %}
+                                <span class="badge badge-warning">Nộp muộn</span> {% endif %}
+                            </td>
+                            <td>{{ submission.submission_time.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>
+                                {% if submission.execution_time %} {{ "%.3f"|format(submission.execution_time) }}s {% else %} - {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <a href="#" class="btn btn-sm btn-outline">Xem chi tiết</a> {% if current_user.is_instructor() %}
+                                    <a href="#" class="btn btn-sm btn-primary">Chấm lại</a> {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center">
+            <div class="mb-4">
+                <span style="font-size: 4rem;">📊</span>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Chưa có kết quả nào</h3>
+            <p class="text-gray-600 mb-4">
+                {% if current_user.role == 'student' %} Bạn chưa nộp bài tập nào. Hãy bắt đầu làm bài tập đầu tiên! {% else %} Chưa có học sinh nào nộp bài trong các khóa học của bạn. {% endif %}
+            </p>
+            {% if current_user.role == 'student' %}
+            <a href="{{ url_for('assignments') }}" class="btn btn-primary">
+                <span>📝</span> Xem bài tập
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

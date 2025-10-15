@@ -1,0 +1,319 @@
+{% extends "base.html" %} {% block title %}Dashboard - UEd AiTutor{% endblock %} {% block page_title %}Dashboard{% endblock %} {% block content %}
+<div class="dashboard-container">
+    {% if current_user.role == 'student' %}
+    <!-- Student Dashboard -->
+    <div class="stats-grid mb-6">
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Khóa học đang theo học</h3>
+                    <p>{{ courses|length }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--primary-100); color: var(--primary-600);">
+                    📚
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Bài tập sắp hết hạn</h3>
+                    <p>{{ upcoming_assignments|length }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--warning-100); color: var(--warning-600);">
+                    ⏰
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Bài đã nộp gần đây</h3>
+                    <p>{{ recent_submissions|length }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--success-100); color: var(--success-600);">
+                    ✅
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card mb-6">
+        <div class="card-header">
+            <h2 class="card-title">Thao tác nhanh</h2>
+        </div>
+        <div class="card-body">
+            <div class="flex gap-4">
+                <a href="{{ url_for('assignments') }}" class="btn btn-primary">
+                    <span>📝</span> Xem bài tập
+                </a>
+                <a href="{{ url_for('practice') }}" class="btn btn-outline">
+                    <span>🏋️</span> Luyện tập
+                </a>
+                <a href="{{ url_for('results') }}" class="btn btn-outline">
+                    <span>📈</span> Xem điểm số
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Assignments -->
+    {% if upcoming_assignments %}
+    <div class="card mb-6">
+        <div class="card-header">
+            <h2 class="card-title">Bài tập sắp hết hạn</h2>
+        </div>
+        <div class="card-body">
+            <div class="assignment-grid">
+                {% for assignment in upcoming_assignments[:3] %}
+                <div class="assignment-card">
+                    <div class="assignment-header">
+                        <h3 class="assignment-title">{{ assignment.title }}</h3>
+                        <div class="assignment-meta">
+                            <span class="badge badge-{{ 'error' if assignment.due_date < moment().add(1, 'day') else 'warning' }}">
+                                    Hết hạn: {{ assignment.due_date.strftime('%d/%m/%Y %H:%M') if assignment.due_date else 'Không giới hạn' }}
+                                </span>
+                        </div>
+                    </div>
+                    <div class="assignment-body">
+                        <p class="assignment-description">{{ assignment.description[:100] }}...</p>
+                        <div class="assignment-tags">
+                            <span class="badge badge-primary">{{ assignment.language|title }}</span>
+                            <span class="badge badge-secondary">{{ assignment.difficulty_level|title }}</span>
+                        </div>
+                    </div>
+                    <div class="assignment-footer">
+                        <span class="text-sm">{{ assignment.points_possible }} điểm</span>
+                        <a href="#" class="btn btn-primary btn-sm">Bắt đầu</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Submissions -->
+    {% if recent_submissions %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Bài nộp gần đây</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Bài tập</th>
+                            <th>Điểm số</th>
+                            <th>Trạng thái</th>
+                            <th>Thời gian nộp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in recent_submissions %}
+                        <tr>
+                            <td>{{ submission.assignment.title }}</td>
+                            <td>
+                                {% if submission.score is not none %} {{ "%.1f"|format(submission.score) }}/{{ submission.max_score or submission.assignment.points_possible }} {% else %} - {% endif %}
+                            </td>
+                            <td>
+                                {% if submission.status == 'completed' %}
+                                <span class="badge badge-success">Hoàn thành</span> {% elif submission.status == 'grading' %}
+                                <span class="badge badge-warning">Đang chấm</span> {% elif submission.status == 'error' %}
+                                <span class="badge badge-error">Lỗi</span> {% else %}
+                                <span class="badge badge-secondary">{{ submission.status }}</span> {% endif %}
+                            </td>
+                            <td>{{ submission.submission_time.strftime('%d/%m/%Y %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %} {% elif current_user.is_instructor() %}
+    <!-- Instructor Dashboard -->
+    <div class="stats-grid mb-6">
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Khóa học đang dạy</h3>
+                    <p>{{ courses|length }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--primary-100); color: var(--primary-600);">
+                    🎓
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Bài nộp chờ chấm</h3>
+                    <p>{{ recent_submissions|length }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--warning-100); color: var(--warning-600);">
+                    📋
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Bài tập đã tạo</h3>
+                    <p>{{ courses|sum(attribute='assignments')|length if courses else 0 }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--success-100); color: var(--success-600);">
+                    📝
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card mb-6">
+        <div class="card-header">
+            <h2 class="card-title">Thao tác nhanh</h2>
+        </div>
+        <div class="card-body">
+            <div class="flex gap-4">
+                <a href="#" class="btn btn-primary">
+                    <span>➕</span> Tạo bài tập mới
+                </a>
+                <a href="{{ url_for('assignments') }}" class="btn btn-outline">
+                    <span>📝</span> Quản lý bài tập
+                </a>
+                <a href="{{ url_for('results') }}" class="btn btn-outline">
+                    <span>📊</span> Xem thống kê
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Submissions -->
+    {% if recent_submissions %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Bài nộp gần đây</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Học sinh</th>
+                            <th>Bài tập</th>
+                            <th>Điểm số</th>
+                            <th>Trạng thái</th>
+                            <th>Thời gian nộp</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in recent_submissions %}
+                        <tr>
+                            <td>{{ submission.user.display_name or submission.user.full_name }}</td>
+                            <td>{{ submission.assignment.title }}</td>
+                            <td>
+                                {% if submission.score is not none %} {{ "%.1f"|format(submission.score) }}/{{ submission.max_score or submission.assignment.points_possible }} {% else %} - {% endif %}
+                            </td>
+                            <td>
+                                {% if submission.status == 'completed' %}
+                                <span class="badge badge-success">Hoàn thành</span> {% elif submission.status == 'grading' %}
+                                <span class="badge badge-warning">Đang chấm</span> {% elif submission.status == 'error' %}
+                                <span class="badge badge-error">Lỗi</span> {% else %}
+                                <span class="badge badge-secondary">{{ submission.status }}</span> {% endif %}
+                            </td>
+                            <td>{{ submission.submission_time.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline">Xem chi tiết</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %} {% else %}
+    <!-- Admin Dashboard -->
+    <div class="stats-grid mb-6">
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Tổng số người dùng</h3>
+                    <p>{{ total_users }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--primary-100); color: var(--primary-600);">
+                    👥
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Tổng số khóa học</h3>
+                    <p>{{ total_courses }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--success-100); color: var(--success-600);">
+                    📚
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Tổng số bài tập</h3>
+                    <p>{{ total_assignments }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--warning-100); color: var(--warning-600);">
+                    📝
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-content">
+                <div class="stat-card-info">
+                    <h3>Tổng số bài nộp</h3>
+                    <p>{{ total_submissions }}</p>
+                </div>
+                <div class="stat-card-icon" style="background-color: var(--purple-100); color: var(--purple-600);">
+                    📊
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card mb-6">
+        <div class="card-header">
+            <h2 class="card-title">Thao tác quản trị</h2>
+        </div>
+        <div class="card-body">
+            <div class="flex gap-4">
+                <a href="#" class="btn btn-primary">
+                    <span>👤</span> Quản lý người dùng
+                </a>
+                <a href="#" class="btn btn-outline">
+                    <span>🎓</span> Quản lý khóa học
+                </a>
+                <a href="#" class="btn btn-outline">
+                    <span>⚙️</span> Cài đặt hệ thống
+                </a>
+                <a href="#" class="btn btn-outline">
+                    <span>📊</span> Báo cáo thống kê
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

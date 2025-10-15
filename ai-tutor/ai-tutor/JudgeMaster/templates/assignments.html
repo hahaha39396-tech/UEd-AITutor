@@ -1,0 +1,130 @@
+{% extends "base.html" %} {% block title %}Bài tập - UEd AiTutor{% endblock %} {% block page_title %}Bài tập{% endblock %} {% block content %}
+<div class="assignments-container">
+    <!-- Header with filters and actions -->
+    <div class="card mb-6">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-xl font-bold">Danh sách bài tập</h2>
+                    <p class="text-sm text-gray-600">
+                        {% if current_user.role == 'student' %} Các bài tập từ khóa học bạn đang theo học {% else %} Các bài tập bạn đã tạo {% endif %}
+                    </p>
+                </div>
+                {% if current_user.is_instructor() %}
+                <a href="#" class="btn btn-primary">
+                    <span>➕</span> Tạo bài tập mới
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Filters -->
+            <div class="flex gap-4">
+                <div class="form-group">
+                    <select class="form-select">
+                        <option value="">Tất cả ngôn ngữ</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                        <option value="javascript">JavaScript</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-select">
+                        <option value="">Tất cả độ khó</option>
+                        <option value="beginner">Cơ bản</option>
+                        <option value="intermediate">Trung bình</option>
+                        <option value="advanced">Nâng cao</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-input" placeholder="Tìm kiếm bài tập...">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignments Grid -->
+    {% if assignments %}
+    <div class="assignment-grid">
+        {% for assignment in assignments %}
+        <div class="assignment-card">
+            <div class="assignment-header">
+                <h3 class="assignment-title">{{ assignment.title }}</h3>
+                <div class="assignment-meta">
+                    <span class="text-sm text-gray-600">{{ assignment.course.title }}</span> {% if assignment.due_date %}
+                    <span class="badge badge-{{ 'error' if assignment.due_date < moment() else 'warning' }}">
+                        {% if assignment.due_date < moment() %}
+                            Đã hết hạn
+                        {% else %}
+                            Hết hạn: {{ assignment.due_date.strftime('%d/%m/%Y') }}
+                        {% endif %}
+                    </span> {% endif %}
+                </div>
+            </div>
+
+            <div class="assignment-body">
+                <p class="assignment-description">{{ assignment.description[:150] }}...</p>
+
+                <div class="assignment-tags">
+                    <span class="badge badge-primary">{{ assignment.language|title }}</span>
+                    <span class="badge badge-secondary">{{ assignment.difficulty_level|title }}</span> {% if assignment.assignment_type != 'coding' %}
+                    <span class="badge badge-info">{{ assignment.assignment_type|title }}</span> {% endif %}
+                </div>
+
+                <div class="assignment-stats">
+                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                        <span>⏱️ {{ assignment.time_limit }} phút</span>
+                        <span>🎯 {{ assignment.points_possible }} điểm</span>
+                        <span>🔄 {{ assignment.max_attempts }} lần thử</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="assignment-footer">
+                <div class="assignment-progress">
+                    {% if current_user.role == 'student' %} {% set user_submissions = assignment.submissions | selectattr('user_id', 'equalto', current_user.id) | list %} {% if user_submissions %} {% set best_submission = user_submissions | sort(attribute='score', reverse=true)
+                    | first %}
+                    <span class="text-sm">
+                                Điểm cao nhất: {{ "%.1f"|format(best_submission.score) if best_submission.score else 0 }}/{{ assignment.points_possible }}
+                            </span> {% else %}
+                    <span class="text-sm text-gray-500">Chưa nộp bài</span> {% endif %} {% else %}
+                    <span class="text-sm">
+                            {{ assignment.submissions | length }} bài nộp
+                        </span> {% endif %}
+                </div>
+
+                <div class="assignment-actions">
+                    {% if current_user.role == 'student' %} {% set user_submissions = assignment.submissions | selectattr('user_id', 'equalto', current_user.id) | list %} {% if user_submissions | length >= assignment.max_attempts %}
+                    <button class="btn btn-sm btn-outline" disabled>Hết lần thử</button> {% elif assignment.due_date and assignment.due_date
+                    < moment() %} <button class="btn btn-sm btn-outline" disabled>Đã hết hạn</button>
+                        {% else %}
+                        <a href="#" class="btn btn-sm btn-primary">
+                                {% if user_submissions %}Thử lại{% else %}Bắt đầu{% endif %}
+                            </a> {% endif %} {% else %}
+                        <a href="#" class="btn btn-sm btn-outline">Xem chi tiết</a>
+                        <a href="#" class="btn btn-sm btn-primary">Chỉnh sửa</a> {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center">
+            <div class="mb-4">
+                <span style="font-size: 4rem;">📝</span>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Chưa có bài tập nào</h3>
+            <p class="text-gray-600 mb-4">
+                {% if current_user.role == 'student' %} Bạn chưa được giao bài tập nào hoặc chưa tham gia khóa học nào. {% else %} Bạn chưa tạo bài tập nào. Hãy tạo bài tập đầu tiên! {% endif %}
+            </p>
+            {% if current_user.is_instructor() %}
+            <a href="#" class="btn btn-primary">
+                <span>➕</span> Tạo bài tập đầu tiên
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

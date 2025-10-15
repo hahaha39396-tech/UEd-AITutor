@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Lỗi {{ error_code }} - JudgeMaster{% endblock %}
+{% block page_title %}Lỗi {{ error_code }}{% endblock %}
+
+{% block unauthenticated_content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo">❌</div>
+            <h1 class="auth-title">Lỗi {{ error_code }}</h1>
+            <p class="auth-subtitle">{{ error_message }}</p>
+        </div>
+        
+        <div class="auth-footer">
+            <a href="{{ url_for('login') if not current_user.is_authenticated else url_for('dashboard') }}" class="btn btn-primary">
+                {% if current_user.is_authenticated %}
+                    Về trang chủ
+                {% else %}
+                    Đăng nhập
+                {% endif %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="card">
+        <div class="card-body text-center">
+            <div class="mb-6">
+                <span style="font-size: 6rem;">
+                    {% if error_code == 403 %}🚫
+                    {% elif error_code == 404 %}🔍
+                    {% else %}⚠️
+                    {% endif %}
+                </span>
+            </div>
+            <h1 class="text-3xl font-bold mb-4">Lỗi {{ error_code }}</h1>
+            <p class="text-lg text-gray-600 mb-6">{{ error_message }}</p>
+            <div class="flex gap-4 justify-center">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Về trang chủ</a>
+                <button onclick="history.back()" class="btn btn-outline">Quay lại</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

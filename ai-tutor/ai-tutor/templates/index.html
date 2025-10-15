@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AI Tutor</title>
+    <style>
+        textarea {
+            width: 100%;
+            height: 200px;
+        }
+        
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Nhập code Python:</h2>
+    <form method="post">
+        <textarea name="code" placeholder="Nhập code của bạn ở đây..."></textarea><br><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if result %}
+    <h3>Kết quả chấm:</h3>
+    <p>Score: {{ result.score }}/{{ result.total }}</p>
+    <h4>Feedback test case:</h4>
+    <ul>
+        {% for f in result.feedback %}
+        <li>{{ f }}</li>
+        {% endfor %}
+    </ul>
+    <h4>Nhận xét AI:</h4>
+    <pre>{{ result.ai_feedback }}</pre> {% endif %}
+    <hr>
+    <h2>Upload ảnh để xử lý CV</h2>
+    <form id="cv-form" enctype="multipart/form-data">
+        <input type="file" name="image" id="image">
+        <button type="submit">Upload</button>
+    </form>
+
+    <h3>Kết quả xử lý ảnh:</h3>
+    <img id="result" src="" alt="Kết quả sẽ hiển thị ở đây" style="max-width:100%; border:1px solid #ccc; padding:5px;">
+    <script>
+        document.getElementById('cv-form').onsubmit = async(e) => {
+            e.preventDefault(); // ngăn reload trang
+            const formData = new FormData();
+            const fileField = document.getElementById('image');
+            formData.append('image', fileField.files[0]);
+
+            const res = await fetch('/cv_upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.result_image) {
+                document.getElementById('result').src = `data:image/jpeg;base64,${data.result_image}`;
+            } else {
+                alert(data.error);
+            }
+        };
+    </script>
+</body>
+
+</html>

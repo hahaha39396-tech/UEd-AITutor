@@ -1,0 +1,73 @@
+{% extends "base.html" %} {% block title %}Luyện tập - UEd AiTutor{% endblock %} {% block page_title %}Luyện tập{% endblock %} {% block content %}
+<div class="practice-container">
+    <!-- Header -->
+    <div class="card mb-6">
+        <div class="card-body">
+            <h2 class="text-xl font-bold mb-2">Khu vực luyện tập</h2>
+            <p class="text-sm text-gray-600">
+                Các bài tập thực hành không giới hạn thời gian để nâng cao kỹ năng lập trình
+            </p>
+        </div>
+    </div>
+
+    <!-- Practice Assignments -->
+    {% if assignments %}
+    <div class="assignment-grid">
+        {% for assignment in assignments %}
+        <div class="assignment-card">
+            <div class="assignment-header">
+                <h3 class="assignment-title">{{ assignment.title }}</h3>
+                <div class="assignment-meta">
+                    <span class="badge badge-success">Luyện tập</span>
+                </div>
+            </div>
+
+            <div class="assignment-body">
+                <p class="assignment-description">{{ assignment.description[:150] }}...</p>
+
+                <div class="assignment-tags">
+                    <span class="badge badge-primary">{{ assignment.language|title }}</span>
+                    <span class="badge badge-secondary">{{ assignment.difficulty_level|title }}</span>
+                </div>
+
+                <div class="assignment-stats">
+                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                        <span>🎯 {{ assignment.points_possible }} điểm</span>
+                        <span>🔄 Không giới hạn lần thử</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="assignment-footer">
+                <div class="assignment-progress">
+                    {% set user_submissions = assignment.submissions | selectattr('user_id', 'equalto', current_user.id) | list %} {% if user_submissions %} {% set best_submission = user_submissions | sort(attribute='score', reverse=true) | first %}
+                    <span class="text-sm">
+                            Điểm cao nhất: {{ "%.1f"|format(best_submission.score) if best_submission.score else 0 }}/{{ assignment.points_possible }}
+                        </span> {% else %}
+                    <span class="text-sm text-gray-500">Chưa thử</span> {% endif %}
+                </div>
+
+                <div class="assignment-actions">
+                    <a href="#" class="btn btn-sm btn-primary">
+                        {% if user_submissions %}Thử lại{% else %}Bắt đầu{% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center">
+            <div class="mb-4">
+                <span style="font-size: 4rem;">🏋️</span>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Chưa có bài luyện tập nào</h3>
+            <p class="text-gray-600 mb-4">
+                Hiện tại chưa có bài luyện tập nào được cung cấp. Hãy quay lại sau nhé!
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

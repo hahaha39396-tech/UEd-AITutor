@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Của Riêng Bạn</title>
+    <!-- Thêm thư viện Marked và MathJax -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [
+                    ['$', '$'],
+                    ['\\(', '\\)']
+                ],
+                displayMath: [
+                    ['$$', '$$'],
+                    ['\\[', '\\]']
+                ]
+            },
+            startup: {
+                pageReady: () => {
+                    return MathJax.startup.defaultPageReady().then(() => {
+                        console.log('MathJax initial typesetting complete');
+                    });
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            background-image: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.15) 0%, transparent 50%), radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .chat-container {
+            width: 100%;
+            max-width: 1200px;
+            /* Increased from 900px */
+            height: 90vh;
+            /* Increased from 85vh */
+            margin: 20px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            padding: 24px 32px;
+            position: relative;
+        }
+        
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"><defs><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M0 0L60 0L60 60L0 60Z" fill="none" stroke="rgba(148,163,184,0.1)" stroke-width="1"/></pattern></defs><rect width="60" height="60" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .header-text h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 4px;
+            letter-spacing: -0.025em;
+        }
+        
+        .header-text p {
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+        
+        .status-indicator {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .status-text {
+            font-size: 12px;
+            color: #10b981;
+            font-weight: 500;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 32px 48px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.5);
+            position: relative;
+        }
+        
+        .message {
+            margin-bottom: 24px;
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .message.ai {
+            display: flex;
+            justify-content: flex-start;
+        }
+        
+        .message-wrapper {
+            max-width: 85%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+        }
+        
+        .message.user .message-header {
+            justify-content: flex-end;
+            color: #3b82f6;
+        }
+        
+        .message.ai .message-header {
+            justify-content: flex-start;
+            color: #8b5cf6;
+        }
+        
+        .avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .message.user .avatar {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+        
+        .message.ai .avatar {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+        
+        .message-content {
+            padding: 16px 20px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            position: relative;
+            border: 1px solid transparent;
+        }
+        
+        .message.user .message-content {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .message.ai .message-content {
+            background: rgba(30, 41, 59, 0.8);
+            color: #e2e8f0;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            font-size: 15px;
+            /* Slightly larger font */
+            line-height: 1.7;
+            padding: 20px 24px;
+        }
+        
+        .timestamp {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 400;
+        }
+        
+        .chat-input {
+            padding: 24px 32px;
+            background: rgba(30, 41, 59, 0.95);
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        
+        .input-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        .input-wrapper {
+            position: relative;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .input-wrapper:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        #messageInput {
+            width: 100%;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            background: transparent;
+            color: #f8fafc;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+            line-height: 1.5;
+            min-height: 24px;
+            max-height: 120px;
+        }
+        
+        #messageInput::placeholder {
+            color: #64748b;
+        }
+        
+        .input-actions {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-button {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .action-button:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        #sendButton {
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #sendButton:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+        
+        #sendButton:active {
+            transform: translateY(0);
+        }
+        
+        #sendButton:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .typing-indicator {
+            display: none;
+            margin-bottom: 24px;
+        }
+        
+        .typing-content {
+            max-width: 75%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .typing-content .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #8b5cf6;
+        }
+        
+        .typing-bubble {
+            padding: 16px 20px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: inline-block;
+            width: fit-content;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #64748b;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
+        }
+        /* Scrollbar styling */
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.5);
+        }
+        /* Mobile responsive */
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .chat-container {
+                height: 90vh;
+                border-radius: 12px;
+            }
+            .chat-header {
+                padding: 20px;
+            }
+            .header-content {
+                gap: 12px;
+            }
+            .logo {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+            .header-text h1 {
+                font-size: 20px;
+            }
+            .status-indicator {
+                display: none;
+            }
+            .chat-messages {
+                padding: 20px;
+            }
+            .message-wrapper {
+                max-width: 85%;
+            }
+            .message-content {
+                padding: 14px 16px;
+                font-size: 14px;
+            }
+            .chat-input {
+                padding: 16px 20px;
+                gap: 12px;
+            }
+            #messageInput {
+                padding: 14px 16px;
+                font-size: 14px;
+            }
+            #sendButton {
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="logo">AI</div>
+                <div class="header-text">
+                    <h1>AI Cá Nhân Hóa</h1>
+                    <p>Trợ lý học tập thông minh với công nghệ AI tiên tiến</p>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span class="status-text">Online</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be displayed here -->
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-content">
+                <div class="message-header">
+                    <div class="avatar">AI</div>
+                    <span>AI Tutor</span>
+                    <span class="timestamp">đang trả lời...</span>
+                </div>
+                <div class="typing-bubble">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea id="messageInput" placeholder="Nhập câu hỏi của bạn..." rows="1"></textarea>
+                    <div class="input-actions">
+                        <button class="action-button" title="Đính kèm file" id="attachButton">📎</button>
+                        <input type="file" id="fileInput" style="display:none" multiple>
+                    </div>
+                </div>
+            </div>
+            <button id="sendButton">
+                <span>Gửi</span>
+                <span>→</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const typingIndicator = document.getElementById('typingIndicator');
+            const attachButton = document.getElementById('attachButton');
+            const fileInput = document.getElementById('fileInput');
+
+            // === ẢNH ĐANG CHỜ GỬI ===
+            let pendingImages = []; // lưu ảnh tạm (Base64)
+
+            // === GỬI TIN NHẮN ===
+            async function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message && pendingImages.length === 0) return;
+
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+
+                // Hiển thị message (text + ảnh)
+                addUserMessagePreview(message, pendingImages);
+                showTypingIndicator();
+
+                try {
+                    const response = await fetch("/tutor", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            user: message,
+                            images: pendingImages, // gửi Base64 cho AI
+                            context_code: ""
+                        })
+                    });
+
+                    hideTypingIndicator();
+                    const data = await response.json();
+                    addMessage(data.reply, false);
+                } catch (error) {
+                    hideTypingIndicator();
+                    addMessage("Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.", false);
+                } finally {
+                    messageInput.disabled = false;
+                    sendButton.disabled = false;
+                    messageInput.value = '';
+                    pendingImages = []; // reset ảnh chờ
+                    clearImagePreview();
+                    messageInput.focus();
+                }
+            }
+
+            // === HIỂN THỊ ẢNH NGƯỜI DÙNG TRƯỚC KHI GỬI ===
+            function addUserMessagePreview(text, images) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message user';
+
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = 'message-wrapper';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'message-header';
+                const avatar = document.createElement('div');
+                avatar.className = 'avatar';
+                avatar.textContent = 'U';
+                const name = document.createElement('span');
+                name.textContent = 'Bạn';
+                const timestamp = document.createElement('span');
+                timestamp.className = 'timestamp';
+                timestamp.textContent = new Date().toLocaleTimeString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                headerDiv.append(avatar, name, timestamp);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                if (text) {
+                    const p = document.createElement('p');
+                    p.textContent = text;
+                    contentDiv.appendChild(p);
+                }
+
+                // Hiển thị ảnh
+                images.forEach(src => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.style.maxWidth = '200px';
+                    img.style.borderRadius = '8px';
+                    img.style.marginTop = '8px';
+                    contentDiv.appendChild(img);
+                });
+
+                wrapperDiv.append(headerDiv, contentDiv);
+                messageDiv.appendChild(wrapperDiv);
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // === THÊM TIN NHẮN AI ===
+            function addMessage(content, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = 'message-wrapper';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'message-header';
+                const avatar = document.createElement('div');
+                avatar.className = 'avatar';
+                avatar.textContent = isUser ? 'U' : 'AI';
+                const name = document.createElement('span');
+                name.textContent = isUser ? 'Bạn' : 'AI Tutor';
+                const timestamp = document.createElement('span');
+                timestamp.className = 'timestamp';
+                timestamp.textContent = new Date().toLocaleTimeString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                headerDiv.append(avatar, name, timestamp);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+
+                if (!isUser) {
+                    try {
+                        let parsed = typeof marked !== 'undefined' ? marked.parse(content) : content;
+                        parsed = parsed.replace(/\$\$(.*?)\$\$/g, '\\[$1\\]').replace(/\$(.*?)\$/g, '\\($1\\)');
+                        contentDiv.innerHTML = parsed;
+                        if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                            MathJax.typesetPromise([contentDiv]).catch(console.error);
+                        }
+                    } catch {
+                        contentDiv.textContent = content;
+                    }
+                } else {
+                    contentDiv.textContent = content;
+                }
+
+                wrapperDiv.append(headerDiv, contentDiv);
+                messageDiv.appendChild(wrapperDiv);
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // === HIỂN THỊ / ẨN TYPING ===
+            function showTypingIndicator() {
+                typingIndicator.style.display = 'block';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function hideTypingIndicator() {
+                typingIndicator.style.display = 'none';
+            }
+
+            // === XỬ LÝ CHỌN FILE ẢNH ===
+            attachButton.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', async() => {
+                const files = Array.from(fileInput.files);
+                for (const file of files) {
+                    if (file.type.startsWith('image/')) {
+                        const base64 = await fileToBase64(file);
+                        pendingImages.push(base64);
+                        showImagePreview();
+                    }
+                }
+                fileInput.value = '';
+            });
+
+            // === XỬ LÝ DÁN ẢNH ===
+            messageInput.addEventListener('paste', async(e) => {
+                const items = (e.clipboardData && e.clipboardData.items) || [];
+                if (!items.length) return;
+
+                for (const item of items) {
+                    if (item.type.indexOf('image') !== -1) {
+                        const file = item.getAsFile();
+                        const base64 = await fileToBase64(file);
+                        pendingImages.push(base64);
+                        showImagePreview();
+                    }
+                }
+            });
+
+            // === HIỂN THỊ ẢNH XEM TRƯỚC TRONG Ô NHẬP ===
+            function showImagePreview() {
+                clearImagePreview();
+                const previewBox = document.createElement('div');
+                previewBox.id = 'imagePreviewBox';
+                previewBox.style.display = 'flex';
+                previewBox.style.gap = '8px';
+                previewBox.style.marginTop = '5px';
+                previewBox.style.flexWrap = 'wrap';
+
+                pendingImages.forEach((src, index) => {
+                    const imgWrap = document.createElement('div');
+                    imgWrap.style.position = 'relative';
+
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.style.maxWidth = '80px';
+                    img.style.borderRadius = '6px';
+                    img.style.border = '1px solid #ccc';
+
+                    const removeBtn = document.createElement('span');
+                    removeBtn.textContent = '×';
+                    removeBtn.style.position = 'absolute';
+                    removeBtn.style.top = '-6px';
+                    removeBtn.style.right = '2px';
+                    removeBtn.style.cursor = 'pointer';
+                    removeBtn.style.background = 'rgba(0,0,0,0.6)';
+                    removeBtn.style.color = 'white';
+                    removeBtn.style.borderRadius = '50%';
+                    removeBtn.style.fontSize = '12px';
+                    removeBtn.style.padding = '1px 4px';
+
+                    removeBtn.addEventListener('click', () => {
+                        pendingImages.splice(index, 1);
+                        showImagePreview();
+                    });
+
+                    imgWrap.append(img, removeBtn);
+                    previewBox.appendChild(imgWrap);
+                });
+
+                messageInput.parentNode.appendChild(previewBox);
+            }
+
+            function clearImagePreview() {
+                const existing = document.getElementById('imagePreviewBox');
+                if (existing) existing.remove();
+            }
+
+            // === CHUYỂN FILE → BASE64 ===
+            function fileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // === RESIZE TEXTAREA ===
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+
+            // === GỬI BẰNG ENTER ===
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // === CHÀO MỪNG ===
+            setTimeout(() => {
+                addMessage("Chào mừng bạn đến với UEd - AI Tutor! Mình là một Trợ lý học tập ảo cá nhân hoá, bạn có thể hỏi mình bất cứ điều gì liên quan đến việc học tập của bạn ^^.", false);
+            }, 800);
+        });
+        async function createImage() {
+            const prompt = "vẽ một con mèo ngồi học bài trong lớp học";
+            const res = await fetch("/generate_image", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    prompt
+                })
+            });
+            const data = await res.json();
+            console.log(data);
+        }
+    </script>
+
+</body>
+
+</html>
