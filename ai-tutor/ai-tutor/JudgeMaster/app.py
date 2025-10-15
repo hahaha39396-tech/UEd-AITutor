@@ -19,6 +19,15 @@ from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def judge_index():
+    return "JudgeMaster app running!"
+
+# Không chạy app.run() ở đây, để import app thôi
 
 # -----------------------------
 # Initialize Flask app
